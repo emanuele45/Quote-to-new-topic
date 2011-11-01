@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+<!--
+/**
+ * Remove & Split (ras)
+ *
+ * @package ras
+ * @author emanuele
+ * @copyright 2011 emanuele, Simple Machines
+ * @license http://www.simplemachines.org/about/smf/license.php BSD
+ *
+ * @version 2.0
+ */
+-->
+	<name>Move and split</name>
+	<id>emanuele:move_and_split</id>
+	<version>0.1.1</version>
+
+	<file name="$sourcedir/SplitTopics.php">
+		<operation>
+			<search position="before"><![CDATA[
+function SplitIndex()
+{
+	global $txt, $topic, $context, $smcFunc, $modSettings;
+]]></search>
+			<add><![CDATA[
+	$context['categories'] = array();
+	if (!isset($_REQUEST['xml']) && empty($_REQUEST['move']))
+	{
+		$request = $smcFunc['db_query']('', '
+			SELECT b.id_cat, c.name AS cat_name, b.id_board, b.name, b.child_level
+			FROM {db_prefix}boards AS b
+				LEFT JOIN {db_prefix}categories AS c ON (c.id_cat = b.id_cat)
+			WHERE {query_see_board}
+				AND b.redirect = {string:blank_redirect}
+			ORDER BY board_order',
+			array(
+				'blank_redirect' => '',
+			)
+		);
+		$context['num_boards'] = $smcFunc['db_num_rows']($request);
+
+		while ($row = $smcFunc['db_fetch_assoc']($request))
+		{
+			// This category hasn't been set up yet..
+			if (!isset($context['categories'][$row['id_cat']]))
+				$context['categories'][$row['id_cat']] = array(
+					'id' => $row['id_cat'],
+					'name' => $row['cat_name'],
+					'boards' => array()
+				);
+
+			// Set this board up, and let the template know when it's a child.  (indent them..)
+			$context['categories'][$row['id_cat']]['boards'][$row['id_board']] = array(
+				'id' => $row['id_board'],
+				'name' => $row['name'],
+				'child_level' => $row['child_level']
+			);
+
+		}
+		$smcFunc['db_free_result']($request);
+
+		// Now, let's sort the list of categories into the boards for templates that like that.
+		$temp_boards = array();
+		foreach ($context['categories'] as $category)
+		{
+			$temp_boards[] = array(
+				'name' => $category['name'],
+				'child_ids' => array_keys($category['boards'])
+			);
+			$temp_boards = array_merge($temp_boards, array_values($category['boards']));
+
+			// Include a list of boards per category for easy toggling.
+			$context['categories'][$category['id']]['child_ids'] = array_keys($category['boards']);
+		}
+	}
+]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+	// Redirect to the selector if they chose selective.
+]]></search>
+			<add><![CDATA[
+	$context['destination_board'] = !empty($_POST['move_to_board']) ? (int) $_POST['move_to_board'] : 0;
+]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+	// Haven't selected anything have we?
+]]></search>
+			<add><![CDATA[
+	$context['destination_board'] = !empty($_POST['move_to_board']) ? (int) $_POST['move_to_board'] : 0;
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+function splitTopic($split1_ID_TOPIC, $splitMessages, $new_subject)
+{
+	global $user_info, $topic, $board, $modSettings, $smcFunc, $txt]]></search>
+			<add><![CDATA[, $context, $sourcedir]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+	// Notify people that this topic has been split?
+	sendNotifications($split1_ID_TOPIC, 'split');
+]]></search>
+			<add><![CDATA[
+	$id_destination_board = (int) $_POST['move_to_board'];
+	if (!empty($id_destination_board))
+	{
+		require_once($sourcedir . '/MoveTopic.php');
+		moveTopics($split2_ID_TOPIC, $id_destination_board);
+
+		$context['destination_board'] = $id_destination_board;
+
+		if ($split2_approved)
+		{
+			$request = $smcFunc['db_query']('', '
+				SELECT msg.id_msg, msg.body, msg.subject, msg.id_member, mem.real_name
+				FROM {db_prefix}messages as msg
+					LEFT JOIN {db_prefix}members as mem ON (msg.id_member = mem.id_member)
+				WHERE id_msg = {int:message_id}
+				LIMIT 1',
+				array(
+					'message_id' => $split2_first_msg,
+			));
+			$message_info = $smcFunc['db_fetch_assoc']($request);
+			$smcFunc['db_free_result']($request);
+
+			require_once($sourcedir . '/Post.php');
+			$notifyData = array(
+				'body' => $message_info['body'],
+				'subject' => $message_info['subject'],
+				'name' => $message_info['real_name'],
+				'poster' => $message_info['id_member'],
+				'msg' => $split2_first_msg,
+				'board' => $id_destination_board,
+				'topic' => $split2_ID_TOPIC,
+			);
+			notifyMembersBoard($notifyData);
+		}
+	}
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$themedir/SplitTopics.template.php">
+		<operation>
+			<search position="replace"><![CDATA[
+						<input type="text" name="subname" id="subname" value="', $context['message']['subject'], '" size="25" class="input_text" />
+					</p>
+]]></search>
+			<add><![CDATA[
+						<input type="text" name="subname" id="subname" value="', $context['message']['subject'], '" size="25" class="input_text" />
+						<strong><label for="move_to_board">', $txt['move_to'], '</label></strong>
+						<select id="move_to_board" name="move_to_board">';
+	foreach ($context['categories'] as $category)
+	{
+		echo '
+							<optgroup label="', $category['name'], '">';
+		foreach ($category['boards'] as $board)
+			echo '
+								<option value="', $board['id'], '" ', !empty($context['current_board']) && $context['current_board'] == $board['id'] ? ' selected="selected"' : '', '>', $board['child_level'] > 0 ? str_repeat('==', $board['child_level']-1) . '=&gt; ' : '', $board['name'], '</option>';
+
+		echo '
+							</optgroup>';
+	}
+
+	echo '
+						</select>
+					</p>
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+				</div>
+				<ul id="messages_not_selected" class="split_messages smalltext reset">';
+]]></search>
+			<add><![CDATA[
+				</div>';
+
+	if (!empty($context['destination_board']))
+		echo '
+				<input type="hidden" name="move_to_board" value="', $context['destination_board'], '" />';
+
+	echo '
+				<ul id="messages_not_selected" class="split_messages smalltext reset">';
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+				<ul class="reset">
+					<li>
+						<a href="', $scripturl, '?board=', $context['current_board'], '.0">', $txt['message_index'], '</a>
+					</li>
+					<li>
+						<a href="', $scripturl, '?topic=', $context['old_topic'], '.0">', $txt['origin_topic'], '</a>
+					</li>
+					<li>
+						<a href="', $scripturl, '?topic=', $context['new_topic'], '.0">', $txt['new_topic'], '</a>
+					</li>
+]]></search>
+			<add><![CDATA[
+				<ul class="reset">';
+	// Same board let's go for classic, different board let's change it a bit
+	if (empty($context['destination_board']))
+		echo '
+					<li>
+						<a href="', $scripturl, '?board=', $context['current_board'], '.0">', $txt['message_index'], '</a>
+					</li>
+					<li>
+						<a href="', $scripturl, '?topic=', $context['old_topic'], '.0">', $txt['origin_topic'], '</a>
+					</li>
+					<li>
+						<a href="', $scripturl, '?topic=', $context['new_topic'], '.0">', $txt['new_topic'], '</a>
+					</li>';
+	else
+		echo '
+					<li>
+						<a href="', $scripturl, '?topic=', $context['old_topic'], '.0">', $txt['origin_topic'], '</a> (<a href="', $scripturl, '?board=', $context['current_board'], '.0">', $txt['message_index'], '</a>)
+					</li>
+					<li>
+						<a href="', $scripturl, '?topic=', $context['new_topic'], '.0">', $txt['new_topic'], '</a> (<a href="', $scripturl, '?board=', $context['destination_board'], '.0">', $txt['message_index'], '</a>)
+					</li>';
+	echo '
+]]></add>
+		</operation>
+	</file>
+
+</modification>
