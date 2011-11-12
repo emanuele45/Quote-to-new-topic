@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <!DOCTYPE package-info SYSTEM "http://www.simplemachines.org/xml/package-info">
 <package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
-	<name>Move and split</name>
-	<id>emanuele:move_and_split</id>
+	<name>Split and move</name>
+	<id>emanuele:split_and_move</id>
 	<version>0.1.1</version>
 	<type>modification</type>
-	<install for="2.0 - 2.00.99">
+	<install for="2.0 - 2.99.99">
 		<modification type="file">modifications.xml</modification>
 	</install>
-	<uninstall for="2.0 - 2.00.99">
+	<uninstall for="2.0 - 2.99.99">
 		<modification reverse="true">modifications.xml</modification>
 	</uninstall>
 </package-info>
