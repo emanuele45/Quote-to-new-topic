@@ -3,9 +3,9 @@
 <modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
 <!--
 /**
- * Remove & Split (ras)
+ * Split & move (sam)
  *
- * @package ras
+ * @package sam
  * @author emanuele
  * @copyright 2011 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
@@ -13,8 +13,7 @@
  * @version 2.0
  */
 -->
-	<name>Move and split</name>
-	<id>emanuele:move_and_split</id>
+	<id>emanuele:split_and_move</id>
 	<version>0.1.1</version>
 
 	<file name="$sourcedir/SplitTopics.php">
