@@ -134,3 +134,5 @@ function sam_getOriginalTopicInfo ($topics_id = null)
 
 	return $new_msg;
 }
+
+?>
