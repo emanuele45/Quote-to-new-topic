@@ -1,14 +1,34 @@
 <?xml version="1.0"?>
 <!DOCTYPE package-info SYSTEM "http://www.simplemachines.org/xml/package-info">
 <package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
-	<name>Move and split</name>
-	<id>emanuele:move_and_split</id>
-	<version>0.1.1</version>
+<license>
+<!--
+/**
+ * Split and Move (sam)
+ *
+ * @package sam
+ * @author emanuele
+ * @copyright 2011 emanuele, Simple Machines
+ * @license http://www.simplemachines.org/about/smf/license.php BSD
+ *
+ * @version 0.1.2
+ */
+-->
+</license>
+	<name>Split and Move</name>
+	<id>emanuele:split_and_move</id>
+	<version>0.1.2</version>
 	<type>modification</type>
 	<install for="2.0 - 2.00.99">
 		<modification type="file">modifications.xml</modification>
+		<modification type="file">lang.xml</modification>
+		<require-file name="Subs-SplitAndMove.php" destination="$sourcedir" />
+		<code>installHooks.php</code>
 	</install>
 	<uninstall for="2.0 - 2.00.99">
 		<modification reverse="true">modifications.xml</modification>
+		<modification reverse="true">lang.xml</modification>
+		<remove-file name="$sourcedir/Subs-SplitAndMove.php" />
+		<code>installHooks.php</code>
 	</uninstall>
 </package-info>

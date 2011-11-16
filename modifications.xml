@@ -1,18 +1,20 @@
 <?xml version="1.0"?>
 <!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
 <modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+<license>
 <!--
 /**
- * Remove & Split (ras)
+ * Split and Move (sam)
  *
- * @package ras
+ * @package sam
  * @author emanuele
  * @copyright 2011 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 2.0
+ * @version 0.1.2
  */
 -->
+</license>
 	<name>Move and split</name>
 	<id>emanuele:move_and_split</id>
 	<version>0.1.1</version>
@@ -107,12 +109,19 @@ function splitTopic($split1_ID_TOPIC, $splitMessages, $new_subject)
 ]]></search>
 			<add><![CDATA[
 	$id_destination_board = (int) $_POST['move_to_board'];
+
+	if (!empty($modSettings['post_split_notification']));
+	{
+		require_once($sourcedir . '/Subs-SplitAndMove.php');
+		sam_PostMovedToTopic($split1_ID_TOPIC, $split2_ID_TOPIC);
+	}
+
 	if (!empty($id_destination_board))
 	{
 		require_once($sourcedir . '/MoveTopic.php');
 		moveTopics($split2_ID_TOPIC, $id_destination_board);
 
-		$context['destination_board'] = $id_destination_board;
+		$context['destination_board'] = $id_board == $id_destination_board ? null : $id_destination_board;
 
 		if ($split2_approved)
 		{
