@@ -19,13 +19,14 @@
 	<id>emanuele:split_and_move</id>
 	<version>0.1.2</version>
 	<type>modification</type>
-	<install for="2.0 - 2.00.99">
+	<install for="2.0 - 2.0.99">
 		<modification type="file">modifications.xml</modification>
 		<modification type="file">lang.xml</modification>
 		<require-file name="Subs-SplitAndMove.php" destination="$sourcedir" />
+		<redirect url="?action=admin;area=modsettings;sa=general" />
 		<code>installHooks.php</code>
 	</install>
-	<uninstall for="2.0 - 2.00.99">
+	<uninstall for="2.0 - 2.0.99">
 		<modification reverse="true">modifications.xml</modification>
 		<modification reverse="true">lang.xml</modification>
 		<remove-file name="$sourcedir/Subs-SplitAndMove.php" />
