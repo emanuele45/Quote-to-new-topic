@@ -19,6 +19,6 @@ elseif (!defined('SMF')) // If we are outside SMF and can't find SSI.php, then t
 $integration_function = empty($context['uninstalling']) ? 'add_integration_function' : 'remove_integration_function';
 
 $integration_function('integrate_admin_include', '$sourcedir/Subs-SplitAndMove.php');
-$integration_function('integrate_general_mod_settings', 'sap_add_modsettings');
+$integration_function('integrate_general_mod_settings', 'sam_add_modsettings');
 
 ?>

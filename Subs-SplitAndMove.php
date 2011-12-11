@@ -22,8 +22,6 @@ if (!defined('SMF'))
 function sam_add_modsettings (&$config_vars)
 {
 	$config_vars[] = array('check', 'post_split_notification');
-	$config_vars[] = array('text', 'notify_bot_name');
-	$config_vars[] = array('text', 'notify_bot_email');
 	$config_vars[] = array('large_text', 'sam_default_notify_message');
 	$config_vars[] = array('large_text', 'sam_default_new_message');
 }
@@ -37,11 +35,11 @@ function sam_add_modsettings (&$config_vars)
 
 function sam_PostMovedToTopic ($old_topic_id, $new_topic_id)
 {
-	global $smcFunc, $modSettings, $context, $board_info, $board, $scripturl, $txt;
+	global $smcFunc, $modSettings, $context, $board_info, $board, $scripturl, $txt, $webmaster_email, $user_info;
 
 	$old_topic_id = (int) $old_topic_id;
 
-	if (empty($old_topic_id) || empty($new_topic_id))
+	if (empty($modSettings['post_split_notification']) || empty($old_topic_id) || empty($new_topic_id))
 		return false;
 
 	$topics = sam_getOriginalTopicInfo(array($old_topic_id, $new_topic_id));
@@ -76,12 +74,12 @@ function sam_PostMovedToTopic ($old_topic_id, $new_topic_id)
 		'mark_as_read' => true,
 		'is_approved' => !$modSettings['postmod_active'] || empty($topic) || !empty($board_info['cur_topic_approved']),
 	);
+	// Do you want to split? Take your responsibility.
 	$posterOptions = array(
-		'id' => 0,
-		// Just want to be sure there is actually something to throw in the db. ;)
-		'name' => (!empty($modSettings['notify_bot_name']) ? $modSettings['notify_bot_name'] : $txt['sam_default_notify_bot_name']),
-		'email' => (!empty($modSettings['notify_bot_email']) ? $modSettings['notify_bot_email'] : 'notifybot@email.filler'),
-		'update_post_count' => false,
+		'id' => $user_info['id'],
+		'name' => $user_info['username'],
+		'email' => $user_info['email'],
+		'update_post_count' => $board_info['posts_count'],
 	);
 
 	createPost($msgOptions, $topicOptions, $posterOptions);
@@ -102,11 +100,15 @@ function sam_PostMovedToTopic ($old_topic_id, $new_topic_id)
 
 	$smcFunc['db_query']('', '
 		UPDATE {db_prefix}messages
-		SET body = CONCAT({string:new_topic_msg}, body)
+		SET body = CONCAT({string:new_topic_msg}, body),
+			modified_time = {int:current_time},
+			modified_name = {string:splitter}
 		WHERE id_msg = {int:message_id}
 		LIMIT 1',
 		array(
 			'new_topic_msg' => $message . '<br /><br />',
+			'current_time' => time(),
+			'splitter' => $user_info['name'],
 			'message_id' => $topics[$new_topic_id]['id_first_msg'],
 	));
 }

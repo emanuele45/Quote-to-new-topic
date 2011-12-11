@@ -26,26 +26,37 @@ $txt['post_split_notification'] = 'Post a message when the topic is split';
 
 $txt['notify_bot_name'] = 'Name of the user that will post the message informing the discussion has been split in another topic';
 $txt['notify_bot_email'] = 'Email address of the user that will post the message informing the discussion has been split in another topic';
-$txt['sam_default_notify_message'] = 'Text of the last message before split<br />
-<span class="smalltext">Note that you can use the following variables:
-<ul>
-<li>{NEXT_TOPIC_URL} - The URL of the newly created topic.</li>
-<li>{NEXT_TOPIC_SUBJECT} - The subject of the newly created topic.</li>
-<li>{NEXT_TOPIC_LINK} - The link to the newly created topic.</li>
-</ul>';
-$txt['sam_default_new_message'] = 'Text of the last message before split<br />
-<span class="smalltext">Note that you can use the following variables:
-<ul>
-<li>{PREV_TOPIC_URL} - The URL of the original topic.</li>
-<li>{PREV_TOPIC_SUBJECT} - The subject of the original topic.</li>
-<li>{PREV_TOPIC_LINK} - The link to the original topic.</li>
-</ul>';
+$txt['sam_default_notify_message'] = 'Text of the last message before split';
+$txt['sam_default_new_message'] = 'Text to add to the first post of the new topic';
 
-$txt['sam_default_text_notify_msg'] = 'This topic has been split. It continues at {NEXT_TOPIC_LINK}';
-$txt['sam_default_text_new_msg'] = 'This topic is the continuation of {PREV_TOPIC_LINK}';
+$txt['sam_default_text_notify_msg'] = 'This topic has been split. The new topic is {NEXT_TOPIC_LINK}';
+$txt['sam_default_text_new_msg'] = 'This topic started at {PREV_TOPIC_LINK}';
 
 $txt['sam_default_notify_bot_name'] = 'Notify bot';
 ]]></add>
 		</operation>
 	</file>
+	<file name="$languagedir/Help.english.php">
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+$helptxt['sam_default_notify_message'] = 'Note that you can use the following variables:
+<ul>
+<li>{NEXT_TOPIC_URL} - The URL of the newly created topic.</li>
+<li>{NEXT_TOPIC_SUBJECT} - The subject of the newly created topic.</li>
+<li>{NEXT_TOPIC_LINK} - The link to the newly created topic.</li>
+</ul>' . '<br />
+Default is: ' . $txt['sam_default_text_notify_msg'];
+
+$helptxt['sam_default_new_message'] = 'Note that you can use the following variables:
+<ul>
+<li>{PREV_TOPIC_URL} - The URL of the original topic.</li>
+<li>{PREV_TOPIC_SUBJECT} - The subject of the original topic.</li>
+<li>{PREV_TOPIC_LINK} - The link to the original topic.</li>
+</ul>
+Default is: ' . $txt['sam_default_text_new_msg'];
+]]></add>
+		</operation>
+	</file>
+	$helptxt
 </modification>
