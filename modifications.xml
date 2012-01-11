@@ -17,7 +17,7 @@
 </license>
 	<name>Move and split</name>
 	<id>emanuele:move_and_split</id>
-	<version>0.1.1</version>
+	<version>0.1.2</version>
 
 	<file name="$sourcedir/SplitTopics.php">
 		<operation>
