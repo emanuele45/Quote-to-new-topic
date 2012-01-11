@@ -24,6 +24,7 @@
 		<modification type="file">lang.xml</modification>
 		<require-file name="Subs-SplitAndMove.php" destination="$sourcedir" />
 		<redirect url="?action=admin;area=modsettings;sa=general" />
+		<readme type="inline">Please note that before any notification message is posted, the settings page must be saved.</readme>
 		<code>installHooks.php</code>
 	</install>
 	<uninstall for="2.0 - 2.0.99">
