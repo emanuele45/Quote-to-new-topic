@@ -29,9 +29,6 @@ $txt['notify_bot_email'] = 'Email address of the user that will post the message
 $txt['sam_default_notify_message'] = 'Text of the last message before split';
 $txt['sam_default_new_message'] = 'Text to add to the first post of the new topic';
 
-$txt['sam_default_text_notify_msg'] = 'This topic has been split. The new topic is {NEXT_TOPIC_LINK}';
-$txt['sam_default_text_new_msg'] = 'This topic started at {PREV_TOPIC_LINK}';
-
 $txt['sam_default_notify_bot_name'] = 'Notify bot';
 $txt['sam_default_message_note'] = 'The value is not yet saved. No messages will be posted';
 ]]></add>

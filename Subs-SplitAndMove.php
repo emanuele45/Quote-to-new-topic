@@ -21,22 +21,9 @@ if (!defined('SMF'))
 
 function sam_add_modsettings (&$config_vars)
 {
-	global $modSettings, $txt;
-
-	$text_label_notify = $txt['sam_default_notify_message'] . (isset($modSettings['sam_default_notify_message']) ? '' : '<br /><span class="smalltext">' . $txt['sam_default_message_note'] . '</span>');
-	$text_label_new = $txt['sam_default_new_message'] . (isset($modSettings['sam_default_new_message']) ? '' :'<br /><span class="smalltext">' . $txt['sam_default_message_note'] . '</span>');
-
 	$config_vars[] = array('check', 'sam_post_split_notification');
-	$config_vars[] = array('large_text', 'sam_default_notify_message', 'text_label' => $text_label_notify, 'invalid' => !isset($modSettings['sam_default_notify_message']));
-	$config_vars[] = array('large_text', 'sam_default_new_message', 'text_label' => $text_label_new, 'invalid' => !isset($modSettings['sam_default_new_message']));
-
-	if (!isset($_REQUEST['save']))
-	{
-		if (!isset($modSettings['sam_default_notify_message']))
-			$modSettings['sam_default_notify_message'] = $txt['sam_default_text_new_msg'];
-		if (!isset($modSettings['sam_default_new_message']))
-			$modSettings['sam_default_new_message'] = $txt['sam_default_text_notify_msg'];
-	}
+	$config_vars[] = array('large_text', 'sam_default_notify_message');
+	$config_vars[] = array('large_text', 'sam_default_new_message');
 }
 
 
