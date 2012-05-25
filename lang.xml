@@ -22,35 +22,9 @@
 		<operation>
 			<search position="end" />
 			<add><![CDATA[
-$txt['qas_post_split_notification'] = 'Post a message when the topic is split';
-
-$txt['notify_bot_name'] = 'Name of the user that will post the message informing the discussion has been split in another topic';
-$txt['notify_bot_email'] = 'Email address of the user that will post the message informing the discussion has been split in another topic';
-$txt['qas_default_notify_message'] = 'Text of the last message before split';
-$txt['qas_default_new_message'] = 'Text to add to the first post of the new topic';
-
-$txt['qas_default_notify_bot_name'] = 'Notify bot';
-$txt['qas_default_message_note'] = 'The value is not yet saved. No messages will be posted';
-]]></add>
-		</operation>
-	</file>
-	<file name="$languagedir/Help.english.php">
-		<operation>
-			<search position="end" />
-			<add><![CDATA[
-$helptxt['qas_default_notify_message'] = 'Note that you can use the following variables:
-<ul>
-<li>{NEXT_TOPIC_URL} - The URL of the newly created topic.</li>
-<li>{NEXT_TOPIC_SUBJECT} - The subject of the newly created topic.</li>
-<li>{NEXT_TOPIC_LINK} - The link to the newly created topic.</li>
-</ul>';
-
-$helptxt['qas_default_new_message'] = 'Note that you can use the following variables:
-<ul>
-<li>{PREV_TOPIC_URL} - The URL of the original topic.</li>
-<li>{PREV_TOPIC_SUBJECT} - The subject of the original topic.</li>
-<li>{PREV_TOPIC_LINK} - The link to the original topic.</li>
-</ul>';
+$txt['qas_topicOriginated_from'] = 'This topic originates from the message {MSG_LINK}';
+$txt['qas_topicGenerates'] = 'This message has started the new discussion {TOPIC_LINK}';
+$txt['qas_quote_new'] = 'Quote to new topic';
 ]]></add>
 		</operation>
 	</file>

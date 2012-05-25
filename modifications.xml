@@ -19,220 +19,92 @@
 	<id>emanuele:quote_and_split</id>
 	<version>0.1.0</version>
 
-	<file name="$sourcedir/SplitTopics.php">
+	<file name="$sourcedir/Post.php">
 		<operation>
-			<search position="before"><![CDATA[
-function SplitIndex()
-{
-	global $txt, $topic, $context, $smcFunc, $modSettings;
+			<search position="replace"><![CDATA[
+	if (empty($board) && !$context['make_event'])
+		fatal_lang_error('no_board', false);
 ]]></search>
 			<add><![CDATA[
-	$context['categories'] = array();
-	if (!isset($_REQUEST['xml']) && empty($_REQUEST['move']))
-	{
-		$request = $smcFunc['db_query']('', '
-			SELECT b.id_cat, c.name AS cat_name, b.id_board, b.name, b.child_level
-			FROM {db_prefix}boards AS b
-				LEFT JOIN {db_prefix}categories AS c ON (c.id_cat = b.id_cat)
-			WHERE {query_see_board}
-				AND b.redirect = {string:blank_redirect}
-			ORDER BY board_order',
-			array(
-				'blank_redirect' => '',
-			)
-		);
-		$context['num_boards'] = $smcFunc['db_num_rows']($request);
-
-		while ($row = $smcFunc['db_fetch_assoc']($request))
-		{
-			// This category hasn't been set up yet..
-			if (!isset($context['categories'][$row['id_cat']]))
-				$context['categories'][$row['id_cat']] = array(
-					'id' => $row['id_cat'],
-					'name' => $row['cat_name'],
-					'boards' => array()
-				);
-
-			// Set this board up, and let the template know when it's a child.  (indent them..)
-			$context['categories'][$row['id_cat']]['boards'][$row['id_board']] = array(
-				'id' => $row['id_board'],
-				'name' => $row['name'],
-				'child_level' => $row['child_level']
-			);
-
-		}
-		$smcFunc['db_free_result']($request);
-
-		// Now, let's sort the list of categories into the boards for templates that like that.
-		$temp_boards = array();
-		foreach ($context['categories'] as $category)
-		{
-			$temp_boards[] = array(
-				'name' => $category['name'],
-				'child_ids' => array_keys($category['boards'])
-			);
-			$temp_boards = array_merge($temp_boards, array_values($category['boards']));
-
-			// Include a list of boards per category for easy toggling.
-			$context['categories'][$category['id']]['child_ids'] = array_keys($category['boards']);
-		}
-	}
+	if (empty($board) && !$context['make_event'] && !isset($_GET['qas']))
+		fatal_lang_error('no_board', false);
+	if (isset($_GET['qas']))
+		qas_setBoardContext();
 ]]></add>
 		</operation>
 		<operation>
-			<search position="after"><![CDATA[
-	// Redirect to the selector if they chose selective.
+			<search position="replace"><![CDATA[
+		redirectexit('action=post;topic=' . $topic . '.0');
+
+	// No need!
 ]]></search>
 			<add><![CDATA[
-	$context['destination_board'] = !empty($_POST['move_to_board']) ? (int) $_POST['move_to_board'] : 0;
+		redirectexit('action=post;topic=' . $topic . '.0');
+
+	$post_jump_to_select = isset($_POST['post_jump_to_select']) ? (int) $_POST['post_jump_to_select'] : 0;
+	if (!empty($post_jump_to_select))
+	{
+		$current_board = $board;
+		$board = $post_jump_to_select;
+		loadBoard();
+	}
+
+	// No need!
 ]]></add>
 		</operation>
 		<operation>
-			<search position="after"><![CDATA[
-	// Haven't selected anything have we?
+			<search position="replace"><![CDATA[
+		createPost($msgOptions, $topicOptions, $posterOptions);
+
+		if (isset($topicOptions['id']))
+			$topic = $topicOptions['id'];
 ]]></search>
 			<add><![CDATA[
-	$context['destination_board'] = !empty($_POST['move_to_board']) ? (int) $_POST['move_to_board'] : 0;
-]]></add>
-		</operation>
-		<operation>
-			<search position="before"><![CDATA[
-function splitTopic($split1_ID_TOPIC, $splitMessages, $new_subject)
-{
-	global $user_info, $topic, $board, $modSettings, $smcFunc, $txt]]></search>
-			<add><![CDATA[, $context, $sourcedir]]></add>
-		</operation>
-		<operation>
-			<search position="before"><![CDATA[
-	// Notify people that this topic has been split?
-	sendNotifications($split1_ID_TOPIC, 'split');
-]]></search>
-			<add><![CDATA[
-	$id_destination_board = (int) $_POST['move_to_board'];
+		if (!empty($post_jump_to_select))
+			$msgOptions['body'] .= qas_prepareNewPostNotice((int) $_POST['qas_original_topic'], (int) $_POST['qas_original_post']);
 
-	if (!empty($modSettings['post_split_notification']));
-	{
-		require_once($sourcedir . '/Subs-SplitAndMove.php');
-		qas_PostMovedToTopic($split1_ID_TOPIC, $split2_ID_TOPIC);
-	}
+		createPost($msgOptions, $topicOptions, $posterOptions);
 
-	if (!empty($id_destination_board))
-	{
-		require_once($sourcedir . '/MoveTopic.php');
-		moveTopics($split2_ID_TOPIC, $id_destination_board);
+		if (isset($topicOptions['id']))
+			$topic = $topicOptions['id'];
 
-		$context['destination_board'] = $id_board == $id_destination_board ? null : $id_destination_board;
-
-		if ($split2_approved)
-		{
-			$request = $smcFunc['db_query']('', '
-				SELECT msg.id_msg, msg.body, msg.subject, msg.id_member, mem.real_name
-				FROM {db_prefix}messages as msg
-					LEFT JOIN {db_prefix}members as mem ON (msg.id_member = mem.id_member)
-				WHERE id_msg = {int:message_id}
-				LIMIT 1',
-				array(
-					'message_id' => $split2_first_msg,
-			));
-			$message_info = $smcFunc['db_fetch_assoc']($request);
-			$smcFunc['db_free_result']($request);
-
-			require_once($sourcedir . '/Post.php');
-			$notifyData = array(
-				'body' => $message_info['body'],
-				'subject' => $message_info['subject'],
-				'name' => $message_info['real_name'],
-				'poster' => $message_info['id_member'],
-				'msg' => $split2_first_msg,
-				'board' => $id_destination_board,
-				'topic' => $split2_ID_TOPIC,
-			);
-			notifyMembersBoard($notifyData);
-		}
-	}
+		if (!empty($post_jump_to_select))
+			qas_updateOriginalPost($topic, $msgOptions, (int) $_POST['qas_original_post']);
 ]]></add>
 		</operation>
 	</file>
 
-	<file name="$themedir/SplitTopics.template.php">
+	<file name="$themedir/Display.template.php">
 		<operation>
-			<search position="replace"><![CDATA[
-						<input type="text" name="subname" id="subname" value="', $context['message']['subject'], '" size="25" class="input_text" />
-					</p>
-]]></search>
+			<search position="before"><![CDATA[									<li class="quote_button"><a href="', $scripturl, '?action=post;quote=', $message['id'], ';topic=', $context['current_topic'], '.', $context['start'], ';last_msg=', $context['topic_last_message'], '" onclick="return oQuickReply.quote(', $message['id'], ');">', $txt['quote'], '</a></li>]]></search>
 			<add><![CDATA[
-						<input type="text" name="subname" id="subname" value="', $context['message']['subject'], '" size="25" class="input_text" />
-						<strong><label for="move_to_board">', $txt['move_to'], '</label></strong>
-						<select id="move_to_board" name="move_to_board">';
-	foreach ($context['categories'] as $category)
-	{
-		echo '
-							<optgroup label="', $category['name'], '">';
-		foreach ($category['boards'] as $board)
-			echo '
-								<option value="', $board['id'], '" ', !empty($context['current_board']) && $context['current_board'] == $board['id'] ? ' selected="selected"' : '', '>', $board['child_level'] > 0 ? str_repeat('==', $board['child_level']-1) . '=&gt; ' : '', $board['name'], '</option>';
-
-		echo '
-							</optgroup>';
-	}
-
-	echo '
-						</select>
-					</p>
-]]></add>
+									<li class="quote_button"><a href="', $scripturl, '?action=post;quote=', $message['id'], ';qas=', $context['current_topic'], '">', $txt['quote'], '</a></li>']]></add>
 		</operation>
+	</file>
+
+	<file name="$themedir/Post.template.php">
 		<operation>
 			<search position="replace"><![CDATA[
-				</div>
-				<ul id="messages_not_selected" class="split_messages smalltext reset">';
+	echo '
+							</select>
+							<img src="', $context['icon_url'], '" name="icons" hspace="15" alt="" />
+						</dd>
+					</dl>
+					<hr class="clear" />';
 ]]></search>
 			<add><![CDATA[
-				</div>';
-
-	if (!empty($context['destination_board']))
-		echo '
-				<input type="hidden" name="move_to_board" value="', $context['destination_board'], '" />';
-
 	echo '
-				<ul id="messages_not_selected" class="split_messages smalltext reset">';
-]]></add>
-		</operation>
-		<operation>
-			<search position="replace"><![CDATA[
-				<ul class="reset">
-					<li>
-						<a href="', $scripturl, '?board=', $context['current_board'], '.0">', $txt['message_index'], '</a>
-					</li>
-					<li>
-						<a href="', $scripturl, '?topic=', $context['old_topic'], '.0">', $txt['origin_topic'], '</a>
-					</li>
-					<li>
-						<a href="', $scripturl, '?topic=', $context['new_topic'], '.0">', $txt['new_topic'], '</a>
-					</li>
-]]></search>
-			<add><![CDATA[
-				<ul class="reset">';
-	// Same board let's go for classic, different board let's change it a bit
-	if (empty($context['destination_board']))
-		echo '
-					<li>
-						<a href="', $scripturl, '?board=', $context['current_board'], '.0">', $txt['message_index'], '</a>
-					</li>
-					<li>
-						<a href="', $scripturl, '?topic=', $context['old_topic'], '.0">', $txt['origin_topic'], '</a>
-					</li>
-					<li>
-						<a href="', $scripturl, '?topic=', $context['new_topic'], '.0">', $txt['new_topic'], '</a>
-					</li>';
-	else
-		echo '
-					<li>
-						<a href="', $scripturl, '?topic=', $context['old_topic'], '.0">', $txt['origin_topic'], '</a> (<a href="', $scripturl, '?board=', $context['current_board'], '.0">', $txt['message_index'], '</a>)
-					</li>
-					<li>
-						<a href="', $scripturl, '?topic=', $context['new_topic'], '.0">', $txt['new_topic'], '</a> (<a href="', $scripturl, '?board=', $context['destination_board'], '.0">', $txt['message_index'], '</a>)
-					</li>';
-	echo '
+							</select>
+							<img src="', $context['icon_url'], '" name="icons" hspace="15" alt="" />
+						</dd>', !empty($context['qas_original_topic']) && !empty($context['qas_original_post']) ? '
+						<dt>
+							<label class="smalltext" for="display_jump_to">' . $context['jump_to']['label'] . ':</label>
+						</dt>
+						<dd id="post_jump_to">&nbsp;</dd>
+						<input type="hidden" name="qas_original_topic" value="' . $context['qas_original_topic'] . '" />
+						<input type="hidden" name="qas_original_post" value="' . $context['qas_original_post'] . '" />' : '', '
+					</dl>
+					<hr class="clear" />';
 ]]></add>
 		</operation>
 	</file>

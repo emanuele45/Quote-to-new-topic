@@ -18,8 +18,7 @@ elseif (!defined('SMF')) // If we are outside SMF and can't find SSI.php, then t
   
 global $hooks, $mod_name;
 $hooks = array(
-	'integrate_admin_include' => '$sourcedir/Subs-QuoteAndSplit.php',
-	'integrate_general_mod_settings' => 'qas_add_modsettings',
+	'integrate_pre_include' => '$sourcedir/Subs-QuoteAndSplit.php',
 );
 $mod_name = 'Quote and Split';
 
