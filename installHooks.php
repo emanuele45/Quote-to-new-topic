@@ -1,13 +1,13 @@
 <?php 
 /**
- * Split and Move (sam)
+ * Quote and Split (qas)
  *
- * @package sam
+ * @package qas
  * @author emanuele
- * @copyright 2011 emanuele, Simple Machines
+ * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.2
+ * @version 0.1.0
  */
 
 // If we have found SSI.php and we are outside of SMF, then we are running standalone.
@@ -18,7 +18,7 @@ elseif (!defined('SMF')) // If we are outside SMF and can't find SSI.php, then t
   
 $integration_function = empty($context['uninstalling']) ? 'add_integration_function' : 'remove_integration_function';
 
-$integration_function('integrate_admin_include', '$sourcedir/Subs-SplitAndMove.php');
-$integration_function('integrate_general_mod_settings', 'sam_add_modsettings');
+$integration_function('integrate_admin_include', '$sourcedir/Subs-QuoteAndSplit.php');
+$integration_function('integrate_general_mod_settings', 'qas_add_modsettings');
 
 ?>

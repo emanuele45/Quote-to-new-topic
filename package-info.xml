@@ -4,25 +4,25 @@
 <license>
 <!--
 /**
- * Split and Move (sam)
+ * Quote and Split (qas)
  *
- * @package sam
+ * @package qas
  * @author emanuele
- * @copyright 2011 emanuele, Simple Machines
+ * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.2
+ * @version 0.1.0
  */
 -->
 </license>
-	<name>Split and Move</name>
-	<id>emanuele:split_and_move</id>
-	<version>0.1.2</version>
+	<name>Quote and Split</name>
+	<id>emanuele:quote_and_split</id>
+	<version>0.1.0</version>
 	<type>modification</type>
 	<install for="2.0 - 2.0.99">
 		<modification type="file">modifications.xml</modification>
 		<modification type="file">lang.xml</modification>
-		<require-file name="Subs-SplitAndMove.php" destination="$sourcedir" />
+		<require-file name="Subs-QuoteAndSplit.php" destination="$sourcedir" />
 		<redirect url="?action=admin;area=modsettings;sa=general" />
 		<readme type="inline">Please note that before any notification message is posted, the settings page must be saved.</readme>
 		<code>installHooks.php</code>
@@ -30,7 +30,7 @@
 	<uninstall for="2.0 - 2.0.99">
 		<modification reverse="true">modifications.xml</modification>
 		<modification reverse="true">lang.xml</modification>
-		<remove-file name="$sourcedir/Subs-SplitAndMove.php" />
+		<remove-file name="$sourcedir/Subs-QuoteAndSplit.php" />
 		<code>installHooks.php</code>
 	</uninstall>
 </package-info>

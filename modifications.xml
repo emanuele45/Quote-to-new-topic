@@ -4,20 +4,20 @@
 <license>
 <!--
 /**
- * Split and Move (sam)
+ * Quote and Split (qas)
  *
- * @package sam
+ * @package qas
  * @author emanuele
- * @copyright 2011 emanuele, Simple Machines
+ * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.2
+ * @version 0.1.0
  */
 -->
 </license>
-	<name>Move and split</name>
-	<id>emanuele:move_and_split</id>
-	<version>0.1.2</version>
+	<name>Quote and Split</name>
+	<id>emanuele:quote_and_split</id>
+	<version>0.1.0</version>
 
 	<file name="$sourcedir/SplitTopics.php">
 		<operation>
@@ -113,7 +113,7 @@ function splitTopic($split1_ID_TOPIC, $splitMessages, $new_subject)
 	if (!empty($modSettings['post_split_notification']));
 	{
 		require_once($sourcedir . '/Subs-SplitAndMove.php');
-		sam_PostMovedToTopic($split1_ID_TOPIC, $split2_ID_TOPIC);
+		qas_PostMovedToTopic($split1_ID_TOPIC, $split2_ID_TOPIC);
 	}
 
 	if (!empty($id_destination_board))

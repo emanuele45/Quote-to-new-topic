@@ -4,33 +4,33 @@
 <license>
 <!--
 /**
- * Split and Move (sam)
+ * Quote and Split (qas)
  *
- * @package sam
+ * @package qas
  * @author emanuele
- * @copyright 2011 emanuele, Simple Machines
+ * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.2
+ * @version 0.1.0
  */
 -->
 </license>
-	<id>emanuele:split_and_move</id>
-	<version>0.1.2</version>
+	<id>emanuele:quote_and_split</id>
+	<version>0.1.0</version>
 
 	<file name="$languagedir/Modifications.english.php">
 		<operation>
 			<search position="end" />
 			<add><![CDATA[
-$txt['sam_post_split_notification'] = 'Post a message when the topic is split';
+$txt['qas_post_split_notification'] = 'Post a message when the topic is split';
 
 $txt['notify_bot_name'] = 'Name of the user that will post the message informing the discussion has been split in another topic';
 $txt['notify_bot_email'] = 'Email address of the user that will post the message informing the discussion has been split in another topic';
-$txt['sam_default_notify_message'] = 'Text of the last message before split';
-$txt['sam_default_new_message'] = 'Text to add to the first post of the new topic';
+$txt['qas_default_notify_message'] = 'Text of the last message before split';
+$txt['qas_default_new_message'] = 'Text to add to the first post of the new topic';
 
-$txt['sam_default_notify_bot_name'] = 'Notify bot';
-$txt['sam_default_message_note'] = 'The value is not yet saved. No messages will be posted';
+$txt['qas_default_notify_bot_name'] = 'Notify bot';
+$txt['qas_default_message_note'] = 'The value is not yet saved. No messages will be posted';
 ]]></add>
 		</operation>
 	</file>
@@ -38,14 +38,14 @@ $txt['sam_default_message_note'] = 'The value is not yet saved. No messages will
 		<operation>
 			<search position="end" />
 			<add><![CDATA[
-$helptxt['sam_default_notify_message'] = 'Note that you can use the following variables:
+$helptxt['qas_default_notify_message'] = 'Note that you can use the following variables:
 <ul>
 <li>{NEXT_TOPIC_URL} - The URL of the newly created topic.</li>
 <li>{NEXT_TOPIC_SUBJECT} - The subject of the newly created topic.</li>
 <li>{NEXT_TOPIC_LINK} - The link to the newly created topic.</li>
 </ul>';
 
-$helptxt['sam_default_new_message'] = 'Note that you can use the following variables:
+$helptxt['qas_default_new_message'] = 'Note that you can use the following variables:
 <ul>
 <li>{PREV_TOPIC_URL} - The URL of the original topic.</li>
 <li>{PREV_TOPIC_SUBJECT} - The subject of the original topic.</li>
