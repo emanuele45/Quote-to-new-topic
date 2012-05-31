@@ -11,25 +11,26 @@
  * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.0
+ * @version 0.1.1
  */
 -->
 </license>
 	<name>Quote and Split</name>
 	<id>emanuele:quote_and_split</id>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<type>modification</type>
 	<install for="2.0 - 2.0.99">
 		<modification type="file">modifications.xml</modification>
 		<modification type="file">lang.xml</modification>
 		<require-file name="Subs-QuoteAndSplit.php" destination="$sourcedir" />
-		<redirect url="?action=admin;area=modsettings;sa=general" />
-		<code>installHooks.php</code>
+		<redirect url="?action=admin;area=packages;sa=browse" />
+		<code>install.php</code>
 	</install>
 	<uninstall for="2.0 - 2.0.99">
 		<modification reverse="true">modifications.xml</modification>
 		<modification reverse="true">lang.xml</modification>
 		<remove-file name="$sourcedir/Subs-QuoteAndSplit.php" />
-		<code>installHooks.php</code>
+		<code>install.php</code>
+		<redirect url="?action=admin;area=packages;sa=browse" />
 	</uninstall>
 </package-info>

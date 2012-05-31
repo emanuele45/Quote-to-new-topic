@@ -7,75 +7,27 @@
  * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.0
+ * @version 0.1.1
  */
 
 if (!defined('SMF'))
 	die('Hacking attempt...');
 
-/**
- *
- * Functions
- *
- */
-
-function qas_prepareNewPostNotice ($topic_id = false, $msg_id = false)
-{
-	global $txt, $scripturl;
-
-	$old_msgInfo = qas_getOriginalTopicInfo($topic_id, $msg_id);
-	$return = '';
-
-	if (!empty($old_msgInfo))
-		$return = '<br /><br />' . str_replace(
-			array(
-				'{TOPIC_URL}',
-				'{MSG_URL}',
-				'{MSG_SUBJECT}',
-				'{TOPIC_LINK}',
-				'{MSG_LINK}',
-			),
-			array(
-				$scripturl . '?topic=' . $topic_id,
-				$scripturl . '?msg=' . $msg_id,
-				$old_msgInfo['subject'],
-				'[iurl=' . $scripturl . '?topic=' . $topic_id . '.0]' . $old_msgInfo['subject'] . '[/iurl]',
-				'[iurl=' . $scripturl . '?topic=' . $topic_id . '.msg' . $msg_id . '#' . $msg_id . ']' . $old_msgInfo['subject'] . '[/iurl]',
-			),
-			$txt['qas_topicOriginated_from']);
-
-	return $return;
-}
-
-function qas_updateOriginalPost ($new_topic_id, $msgOptions, $old_msg_id)
+function qas_updateOriginalPost ($new_topic_id, $old_msg_id)
 {
 	global $smcFunc, $scripturl, $txt;
 
 	if (empty($old_msg_id))
 		return false;
 
-	$message = str_replace(
-		array(
-			'{TOPIC_URL}',
-			'{TOPIC_SUBJECT}',
-			'{TOPIC_LINK}',
-		),
-		array(
-			$scripturl . '?topic=' . $new_topic_id . '.0',
-			$msgOptions['subject'],
-			'[iurl=' . $scripturl . '?topic=' . $new_topic_id . '.0]' . $msgOptions['subject'] . '[/iurl]',
-		),
-		$txt['qas_topicGenerates']
-	);
-
 	$smcFunc['db_query']('', '
 		UPDATE {db_prefix}messages
-		SET body = CONCAT(body, {string:new_topic_msg})
+		SET split_into = CONCAT(split_into, \',\', {string:new_topic_id})
 		WHERE id_msg = {int:message_id}
 		AND {query_see_board}
 		LIMIT 1',
 		array(
-			'new_topic_msg' => '<br /><br />' . $message,
+			'new_topic_id' => $new_topic_id,
 			'message_id' => $old_msg_id,
 	));
 }
@@ -215,12 +167,12 @@ function qas_setBoardContext()
 
 }
 
-function qas_getOriginalTopicInfo ($topic_id = null, $id_msg = null)
+function qas_getOriginalTopicInfo ($id_msg = null)
 {
 	global $smcFunc, $context;
 	static $new_msg;
 
-	if(empty($topic_id) || empty($id_msg))
+	if(empty($id_msg))
 		return false;
 
 	if (isset($new_msg[$id_msg]))
@@ -245,4 +197,60 @@ function qas_getOriginalTopicInfo ($topic_id = null, $id_msg = null)
 	return $new_msg[$id_msg];
 }
 
+function qas_getGeneratedTopics ($topics = array())
+{
+	global $smcFunc, $context, $scripturl;
+	static $loaded_topic;
+
+	if(empty($topics))
+		return false;
+
+	if (!is_array($topics))
+		$topics = explode(',', $topics);
+
+	$query_topic = array();
+	$return = array();
+	foreach ($topics as $topic)
+	{
+		$topic = (int) trim($topic);
+		if (!empty($topic) && isset($loaded_topic[$topic]))
+			$return[] = $loaded_topic[$topic];
+		else
+			$query_topic[] = $topic;
+	}
+
+	if (!empty($query_topic))
+	{
+		// Retrieve the original information
+		$request = $smcFunc['db_query']('', '
+			SELECT t.id_topic, m.subject, t.approved
+			FROM {db_prefix}topics as t
+			LEFT JOIN {db_prefix}messages as m ON (t.id_first_msg = m.id_msg)
+			WHERE t.id_topic IN ({array_int:id_topic})
+			AND {query_see_board}',
+			array(
+				'id_topic' => $query_topic,
+		));
+		$new_msg = array();
+		while ($msg = $smcFunc['db_fetch_assoc']($request))
+		{
+			$msg['url'] = '<a href="' . $scripturl . '?topic=' . $msg['id_topic'] . '.0">' . $msg['subject'] . '</a>';
+			$loaded_topic[$id_msg] = $msg;
+			$return[] = $msg;
+		}
+		$smcFunc['db_free_result']($request);
+	}
+
+	return $return;
+}
+
+function qas_getOriginatingMsg (&$normal_buttons)
+{
+	global $smcFunc, $context, $scripturl, $txt;
+
+	if(empty($context['topic_originated_from']))
+		return;
+
+	$normal_buttons['original_msg'] = array('text' => 'qas_topicOriginated_from', 'image' => '', 'lang' => true, 'url' => $scripturl . '?msg=' . $context['topic_originated_from']);
+}
 ?>

@@ -7,7 +7,7 @@
  * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.0
+ * @version 0.1.1
  */
 
 // If we have found SSI.php and we are outside of SMF, then we are running standalone.
@@ -19,6 +19,7 @@ elseif (!defined('SMF')) // If we are outside SMF and can't find SSI.php, then t
 global $hooks, $mod_name;
 $hooks = array(
 	'integrate_pre_include' => '$sourcedir/Subs-QuoteAndSplit.php',
+	'integrate_display_buttons' => 'qas_getOriginatingMsg',
 );
 $mod_name = 'Quote and Split';
 
@@ -69,11 +70,38 @@ function install_mod ()
 
 function setup_hooks ()
 {
-	global $context, $hooks;
+	global $context, $hooks, $smcFunc;
 
 	$integration_function = empty($context['uninstalling']) ? 'add_integration_function' : 'remove_integration_function';
 	foreach ($hooks as $hook => $function)
 		$integration_function($hook, $function);
+
+	if (empty($context['uninstalling']))
+	{
+		db_extend('Packages');
+		$smcFunc['db_add_column'] (
+			'{db_prefix}topics', 
+			array(
+				'name' => 'derived_from',
+				'type' => 'int',
+				'size' => 10,
+				'default' => 0
+			),
+			array(),
+			'ignore'
+		);
+		$smcFunc['db_add_column'] (
+			'{db_prefix}messages', 
+			array(
+				'name' => 'split_into',
+				'type' => 'text',
+				'default' => ''
+			),
+			array(),
+			'ignore'
+		);
+
+	}
 
 	$context['installation_done'] = true;
 }

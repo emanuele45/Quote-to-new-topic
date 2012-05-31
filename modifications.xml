@@ -11,13 +11,13 @@
  * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.0
+ * @version 0.1.1
  */
 -->
 </license>
 	<name>Quote and Split</name>
 	<id>emanuele:quote_and_split</id>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 
 	<file name="$sourcedir/Post.php">
 		<operation>
@@ -53,7 +53,12 @@
 ]]></add>
 		</operation>
 		<operation>
-			<search position="replace"><![CDATA[
+			<search position="before"><![CDATA[		'is_approved' => !$modSettings['postmod_active'] || empty($topic) || !empty($board_info['cur_topic_approved']),]]></search>
+			<add><![CDATA[
+		'derived_from' => isset($_POST['qas_original_post']) ? (int) $_POST['qas_original_post'] : 0,]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
 		createPost($msgOptions, $topicOptions, $posterOptions);
 
 		if (isset($topicOptions['id']))
@@ -61,16 +66,44 @@
 ]]></search>
 			<add><![CDATA[
 		if (!empty($post_jump_to_select))
-			$msgOptions['body'] .= qas_prepareNewPostNotice((int) $_POST['qas_original_topic'], (int) $_POST['qas_original_post']);
-
-		createPost($msgOptions, $topicOptions, $posterOptions);
-
-		if (isset($topicOptions['id']))
-			$topic = $topicOptions['id'];
-
-		if (!empty($post_jump_to_select))
-			qas_updateOriginalPost($topic, $msgOptions, (int) $_POST['qas_original_post']);
+			qas_updateOriginalPost($topic, (int) $_POST['qas_original_post']);
 ]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Subs-Post.php">
+		<operation>
+			<search position="before"><![CDATA[				'id_poll' => 'int', 'unapproved_posts' => 'int', 'approved' => 'int',]]></search>
+			<add><![CDATA[
+				'derived_from' => 'int',]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[				$topicOptions['poll'] === null ? 0 : $topicOptions['poll'], $msgOptions['approved'] ? 0 : 1, $msgOptions['approved'],]]></search>
+			<add><![CDATA[
+				isset($topicOptions['derived_from']) ? $topicOptions['derived_from'] : 0,]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Display.php">
+		<operation>
+			<search position="before"><![CDATA[			t.num_replies, t.num_views, t.locked, ms.subject, t.is_sticky, t.id_poll,]]></search>
+			<add><![CDATA[
+			t.derived_from,]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[	$context['topic_last_message'] = $topicinfo['id_last_msg'];]]></search>
+			<add><![CDATA[
+	$context['topic_originated_from'] = $topicinfo['derived_from'];]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[				id_msg_modified < {int:new_from} AS is_read]]></search>
+			<add><![CDATA[
+				, split_into]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[		'body' => $message['body'],]]></search>
+			<add><![CDATA[
+		'split_into' => qas_getGeneratedTopics($message['split_into']),]]></add>
 		</operation>
 	</file>
 
@@ -78,7 +111,43 @@
 		<operation>
 			<search position="before"><![CDATA[									<li class="quote_button"><a href="', $scripturl, '?action=post;quote=', $message['id'], ';topic=', $context['current_topic'], '.', $context['start'], ';last_msg=', $context['topic_last_message'], '" onclick="return oQuickReply.quote(', $message['id'], ');">', $txt['quote'], '</a></li>]]></search>
 			<add><![CDATA[
-									<li class="quote_button"><a href="', $scripturl, '?action=post;quote=', $message['id'], ';qas=', $context['current_topic'], '">', $txt['quote'], '</a></li>']]></add>
+									<li class="quote_button"><a href="', $scripturl, '?action=post;quote=', $message['id'], ';qas=', $context['current_topic'], '">', $txt['qas_quote_new'], '</a></li>]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+							</div>';
+		}
+
+		echo '
+						</div>
+						<div class="moderatorbar">
+]]></search>
+			<add><![CDATA[
+							</div>';
+		}
+
+		if (!empty($message['split_into']))
+		{
+			echo '
+							<div class="attachments smalltext">', $txt['qas_topicGenerates'] , '
+								<div style="overflow: ', $context['browser']['is_firefox'] ? 'visible' : 'auto', ';">
+									<ul>';
+
+			foreach ($message['split_into'] as $topic)
+				if (empty($topic['approved']) || (!empty($topic['approved']) && $context['can_approve']))
+					echo '
+										<li>' . $topic['url'] . '</li>';
+
+			echo '
+									</ul>
+								</div>
+							</div>';
+		}
+
+		echo '
+						</div>
+						<div class="moderatorbar">
+]]></add>
 		</operation>
 	</file>
 
@@ -89,8 +158,7 @@
 							</select>
 							<img src="', $context['icon_url'], '" name="icons" hspace="15" alt="" />
 						</dd>
-					</dl>
-					<hr class="clear" />';
+					</dl><hr class="clear" />';
 ]]></search>
 			<add><![CDATA[
 	echo '
@@ -103,8 +171,7 @@
 						<dd id="post_jump_to">&nbsp;</dd>
 						<input type="hidden" name="qas_original_topic" value="' . $context['qas_original_topic'] . '" />
 						<input type="hidden" name="qas_original_post" value="' . $context['qas_original_post'] . '" />' : '', '
-					</dl>
-					<hr class="clear" />';
+					</dl><hr class="clear" />';
 ]]></add>
 		</operation>
 	</file>

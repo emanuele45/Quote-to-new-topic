@@ -11,19 +11,19 @@
  * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.0
+ * @version 0.1.1
  */
 -->
 </license>
 	<id>emanuele:quote_and_split</id>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 
 	<file name="$languagedir/Modifications.english.php">
 		<operation>
 			<search position="end" />
 			<add><![CDATA[
-$txt['qas_topicOriginated_from'] = 'This topic originates from the message {MSG_LINK}';
-$txt['qas_topicGenerates'] = 'This message has started the new discussion {TOPIC_LINK}';
+$txt['qas_topicOriginated_from'] = 'Original message';
+$txt['qas_topicGenerates'] = 'This message has started the new discussion/s:';
 $txt['qas_quote_new'] = 'Quote to new topic';
 ]]></add>
 		</operation>
