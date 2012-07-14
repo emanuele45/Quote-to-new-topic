@@ -7,7 +7,7 @@
  * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.1
+ * @version 0.1.2
  */
 
 if (!defined('SMF'))
@@ -38,7 +38,7 @@ function qas_setBoardContext()
 	$qas = isset($_GET['qas']) ? (int) $_GET['qas'] : 0;
 	$id_msg = isset($_GET['quote']) ? (int) $_GET['quote'] : 0;
 
-	$topic_info = qas_getOriginalTopicInfo($qas, $id_msg);
+	$topic_info = qas_getOriginalTopicInfo($id_msg, $qas);
 
 	if (empty($topic_info))
 		fatal_lang_error('no_board', false);
@@ -167,40 +167,57 @@ function qas_setBoardContext()
 
 }
 
-function qas_getOriginalTopicInfo ($id_msg = null)
+function qas_getOriginalTopicInfo ($id_msg = null, $id_topic = null)
 {
 	global $smcFunc, $context;
 	static $new_msg;
 
-	if(empty($id_msg))
+	if(empty($id_msg) || empty($id_topic))
 		return false;
-
+// $context['topic_first_message']
 	if (isset($new_msg[$id_msg]))
 		return $new_msg[$id_msg];
 
 	// Retrieve the original information
 	$request = $smcFunc['db_query']('', '
-		SELECT t.id_topic, t.id_board, b.name, b.child_level, m.subject, m.body, t.locked, t.id_first_msg
+		SELECT t.id_topic, t.id_board, b.name, b.child_level, m.poster_time, m.subject, m.body, t.locked, t.id_first_msg,
+			IFNULL(mem.real_name, m.poster_name) AS poster_name
 		FROM {db_prefix}messages as m
 		LEFT JOIN {db_prefix}topics as t ON (t.id_topic = m.id_topic)
 		LEFT JOIN {db_prefix}boards as b ON (m.id_board = b.id_board)
+		LEFT JOIN {db_prefix}members AS mem ON (mem.id_member = m.id_member)
 		WHERE m.id_msg = {int:id_msg}
-		AND {query_see_board}',
+			AND {query_see_board}',
 		array(
 			'id_msg' => $id_msg,
 	));
 	$new_msg = array();
 	while ($msg = $smcFunc['db_fetch_assoc']($request))
+	{
+		$msg['body'] = '[quote author=' . $msg['poster_name'] . ' link=topic=' . $id_topic . '.msg' . $id_msg . '#msg' . $id_msg . ' date=' . $msg['poster_time'] . ']' . "\n" . rtrim($msg['body']) . "\n" . '[/quote]';
 		$new_msg[$id_msg] = $msg;
+	}
 	$smcFunc['db_free_result']($request);
 
 	return $new_msg[$id_msg];
 }
 
-function qas_getGeneratedTopics ($topics = array())
+function qas_getGeneratedTopics ($topics = array(), &$output)
 {
-	global $smcFunc, $context, $scripturl;
+	global $smcFunc, $context, $scripturl, $txt, $user_info, $modSettings;
 	static $loaded_topic;
+
+
+	if ($output['id'] == $context['topic_first_message'] && !empty($context['topic_originated_from']))
+	{
+		if (!isset($output['member']['custom_fields']))
+			$output['member']['custom_fields'] = array();
+
+			$output['member']['custom_fields'][] = array(
+				'placement' => 2,
+				'value' => '<a href="' . $scripturl . '?msg=' . $context['topic_originated_from'] . '">' . $txt['qas_topicOriginated_from'] . '</a>',
+			);
+	}
 
 	if(empty($topics))
 		return false;
@@ -214,8 +231,11 @@ function qas_getGeneratedTopics ($topics = array())
 	{
 		$topic = (int) trim($topic);
 		if (!empty($topic) && isset($loaded_topic[$topic]))
-			$return[] = $loaded_topic[$topic];
-		else
+		{
+			if (empty($modSettings['postmod_active']) || (!empty($modSettings['postmod_active']) && !$loaded_topic[$topic]['approved'] && allowedTo('approve_posts')))
+				$return[] = $loaded_topic[$topic];
+		}
+		elseif (!empty($topic))
 			$query_topic[] = $topic;
 	}
 
@@ -235,22 +255,33 @@ function qas_getGeneratedTopics ($topics = array())
 		while ($msg = $smcFunc['db_fetch_assoc']($request))
 		{
 			$msg['url'] = '<a href="' . $scripturl . '?topic=' . $msg['id_topic'] . '.0">' . $msg['subject'] . '</a>';
-			$loaded_topic[$id_msg] = $msg;
-			$return[] = $msg;
+			$loaded_topic[$msg['id_topic']] = $msg;
+
+			if (empty($modSettings['postmod_active']) || (!empty($modSettings['postmod_active']) && ($msg['approved'] || (!$msg['approved'] && allowedTo('approve_posts')))))
+				$return[] = $msg;
 		}
 		$smcFunc['db_free_result']($request);
 	}
 
-	return $return;
+	$ret = '';
+	if (!empty($return))
+	{
+		$ret = $txt['qas_topicGenerates'] . '
+			<ul class="generated_discussions">';
+	foreach ($return as $topic_data)
+		$ret .= '
+				<li>' . $topic_data['url'] . '</li>';
+		$ret .= '
+			</ul>';
+
+		if (!isset($output['member']['custom_fields']))
+			$output['member']['custom_fields'] = array();
+
+			$output['member']['custom_fields'][] = array(
+				'placement' => 2,
+				'value' => $ret,
+			);
+	}
 }
 
-function qas_getOriginatingMsg (&$normal_buttons)
-{
-	global $smcFunc, $context, $scripturl, $txt;
-
-	if(empty($context['topic_originated_from']))
-		return;
-
-	$normal_buttons['original_msg'] = array('text' => 'qas_topicOriginated_from', 'image' => '', 'lang' => true, 'url' => $scripturl . '?msg=' . $context['topic_originated_from']);
-}
 ?>
