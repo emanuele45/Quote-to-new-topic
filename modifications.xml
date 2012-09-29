@@ -47,6 +47,7 @@
 		$current_board = $board;
 		$board = $post_jump_to_select;
 		loadBoard();
+		loadPermissions();
 	}
 
 	// No need!
@@ -67,6 +68,18 @@
 			<add><![CDATA[
 		if (!empty($post_jump_to_select))
 			qas_updateOriginalPost($topic, (int) $_POST['qas_original_post']);
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+			else
+				isAllowedTo('post_new');
+		}
+]]></search>
+			<add><![CDATA[
+			elseif (empty($context['qas_original_topic']))
+				isAllowedTo('post_new');
+		}
 ]]></add>
 		</operation>
 	</file>

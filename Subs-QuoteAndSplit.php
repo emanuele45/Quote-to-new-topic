@@ -20,11 +20,25 @@ function qas_updateOriginalPost ($new_topic_id, $old_msg_id)
 	if (empty($old_msg_id))
 		return false;
 
+	$request = $smcFunc['db_query']('', '
+		SELECT id_msg
+		FROM {db_prefix}messages as m
+		LEFT JOIN {db_prefix}boards as b ON (m.id_board = b.id_board)
+		WHERE id_msg = {int:message_id}
+			AND {query_see_board}
+		LIMIT 1',
+		array(
+			'message_id' => $old_msg_id,
+	));
+
+	// Not worth unset
+	if ($smcFunc['db_num_rows']($request) == 0)
+		return false;
+
 	$smcFunc['db_query']('', '
 		UPDATE {db_prefix}messages
 		SET split_into = CONCAT(split_into, \',\', {string:new_topic_id})
 		WHERE id_msg = {int:message_id}
-		AND {query_see_board}
 		LIMIT 1',
 		array(
 			'new_topic_id' => $new_topic_id,
@@ -34,7 +48,7 @@ function qas_updateOriginalPost ($new_topic_id, $old_msg_id)
 
 function qas_setBoardContext()
 {
-	global $board, $context, $txt, $sourcedir;
+	global $board, $context, $txt, $sourcedir, $topic;
 	$qas = isset($_GET['qas']) ? (int) $_GET['qas'] : 0;
 	$id_msg = isset($_GET['quote']) ? (int) $_GET['quote'] : 0;
 
@@ -42,8 +56,6 @@ function qas_setBoardContext()
 
 	if (empty($topic_info))
 		fatal_lang_error('no_board', false);
-
-	$board = $topic_info['id_board'];
 
 	$context['jump_to'] = array(
 		'label' => addslashes(un_htmlspecialchars($txt['board'])),
@@ -59,7 +71,7 @@ function qas_setBoardContext()
 	$context['insert_after_template'] .= '
 		<script type="text/javascript"><!-- // --><![CDATA[
 			var sCurBoardName = "' . $context['jump_to']['board_name'] . '".removeEntities();
-			var iCurBoardId = ' . $board . ';
+			var iCurBoardId = ' . $topic_info['id_board'] . ';
 			var sCatSeparator = "-----------------------------";
 			var sBoardChildLevelIndicator = "==";
 			var sCatPrefix = "";
@@ -165,6 +177,7 @@ function qas_setBoardContext()
 			}
 		// ]]></script>';
 
+	$board = 0;
 }
 
 function qas_getOriginalTopicInfo ($id_msg = null, $id_topic = null)
@@ -246,6 +259,7 @@ function qas_getGeneratedTopics ($topics = array(), &$output)
 			SELECT t.id_topic, m.subject, t.approved
 			FROM {db_prefix}topics as t
 			LEFT JOIN {db_prefix}messages as m ON (t.id_first_msg = m.id_msg)
+			LEFT JOIN {db_prefix}boards as b ON (t.id_board = b.id_board)
 			WHERE t.id_topic IN ({array_int:id_topic})
 			AND {query_see_board}',
 			array(
