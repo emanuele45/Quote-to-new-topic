@@ -7,7 +7,7 @@
  * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.3
+ * @version 0.1.3b
  */
 
 if (!defined('SMF'))
@@ -29,7 +29,8 @@ function qas_updateOriginalPost ($new_topic_id, $old_msg_id)
 		LIMIT 1',
 		array(
 			'message_id' => $old_msg_id,
-	));
+		)
+	);
 
 	// Not worth unset
 	if ($smcFunc['db_num_rows']($request) == 0)
@@ -43,7 +44,8 @@ function qas_updateOriginalPost ($new_topic_id, $old_msg_id)
 		array(
 			'new_topic_id' => $new_topic_id,
 			'message_id' => $old_msg_id,
-	));
+		)
+	);
 }
 
 function qas_setBoardContext()
@@ -183,13 +185,9 @@ function qas_setBoardContext()
 function qas_getOriginalTopicInfo ($id_msg = null, $id_topic = null)
 {
 	global $smcFunc, $context;
-	static $new_msg;
 
 	if(empty($id_msg) || empty($id_topic))
 		return false;
-// $context['topic_first_message']
-	if (isset($new_msg[$id_msg]))
-		return $new_msg[$id_msg];
 
 	// Retrieve the original information
 	$request = $smcFunc['db_query']('', '
@@ -203,16 +201,14 @@ function qas_getOriginalTopicInfo ($id_msg = null, $id_topic = null)
 			AND {query_see_board}',
 		array(
 			'id_msg' => $id_msg,
-	));
-	$new_msg = array();
-	while ($msg = $smcFunc['db_fetch_assoc']($request))
-	{
+		)
+	);
+	$msg = $smcFunc['db_fetch_assoc']($request);
+	if (!empty($msg))
 		$msg['body'] = '[quote author=' . $msg['poster_name'] . ' link=topic=' . $id_topic . '.msg' . $id_msg . '#msg' . $id_msg . ' date=' . $msg['poster_time'] . ']' . "\n" . rtrim($msg['body']) . "\n" . '[/quote]';
-		$new_msg[$id_msg] = $msg;
-	}
 	$smcFunc['db_free_result']($request);
 
-	return $new_msg[$id_msg];
+	return $msg;
 }
 
 function qas_getGeneratedTopics ($topics = array(), &$output)
@@ -264,7 +260,8 @@ function qas_getGeneratedTopics ($topics = array(), &$output)
 			AND {query_see_board}',
 			array(
 				'id_topic' => $query_topic,
-		));
+			)
+		);
 		$new_msg = array();
 		while ($msg = $smcFunc['db_fetch_assoc']($request))
 		{

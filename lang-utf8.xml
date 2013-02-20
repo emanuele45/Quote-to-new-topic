@@ -18,7 +18,7 @@
 	<id>emanuele:quote_and_split</id>
 	<version>0.1.3b</version>
 
-	<file name="$languagedir/Modifications.english.php">
+	<file error="skip" name="$languagedir/Modifications.english-utf8.php">
 		<operation>
 			<search position="end" />
 			<add><![CDATA[
@@ -29,12 +29,12 @@ $txt['qas_quote_new'] = 'Quote to new topic';
 		</operation>
 	</file>
 
-	<file error="skip" name="$languagedir/Modifications.finnish.php">
+	<file error="skip" name="$languagedir/Modifications.finnish-utf8.php">
 		<operation>
 			<search position="end" />
 			<add><![CDATA[
-$txt['qas_topicOriginated_from'] = 'Alkuperäinen viesti';
-$txt['qas_topicGenerates'] = 'Tämä viesti on aloittanut uuden keskustelun/keskustelut:';
+$txt['qas_topicOriginated_from'] = 'AlkuperÃ¤inen viesti';
+$txt['qas_topicGenerates'] = 'TÃ¤mÃ¤ viesti on aloittanut uuden keskustelun/keskustelut:';
 $txt['qas_quote_new'] = 'Lainaus uuteen keskusteluun';
 ]]></add>
 		</operation>

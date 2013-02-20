@@ -11,13 +11,13 @@
  * @copyright 2012 emanuele, Simple Machines
  * @license http://www.simplemachines.org/about/smf/license.php BSD
  *
- * @version 0.1.3
+ * @version 0.1.3b
  */
 -->
 </license>
 	<name>Quote and Split</name>
 	<id>emanuele:quote_and_split</id>
-	<version>0.1.3</version>
+	<version>0.1.3b</version>
 
 	<file name="$sourcedir/Post.php">
 		<operation>
@@ -125,7 +125,7 @@
 		<operation>
 			<search position="before"><![CDATA[									<li class="quote_button"><a href="', $scripturl, '?action=post;quote=', $message['id'], ';topic=', $context['current_topic'], '.', $context['start'], ';last_msg=', $context['topic_last_message'], '" onclick="return oQuickReply.quote(', $message['id'], ');">', $txt['quote'], '</a></li>]]></search>
 			<add><![CDATA[
-									<li class="quote_button"><a href="', $scripturl, '?action=post;quote=', $message['id'], ';qas=', $context['current_topic'], '">', $txt['qas_quote_new'], '</a></li>]]></add>
+									<li class="quote_button"><a href="', $scripturl, '?action=post;board=', $context['current_board'], ';quote=', $message['id'], ';qas=', $context['current_topic'], '">', $txt['qas_quote_new'], '</a></li>]]></add>
 		</operation>
 	</file>
 
